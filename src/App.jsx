@@ -928,9 +928,14 @@ export default function BCMentalHealthResources() {
   const [regionSearch, setRegionSearch] = useState("");
   const [eventSearch, setEventSearch] = useState("");
   const [eventFilter, setEventFilter] = useState("all");
+  const [showSearch, setShowSearch] = useState(false);
+  const searchInputRef = useRef(null);
   const topRef = useRef(null);
 
   useEffect(() => { if (topRef.current) topRef.current.scrollIntoView({ behavior: "smooth" }); }, [page, selectedCategory]);
+
+  // Auto-focus search input when opened
+  useEffect(() => { if (showSearch && searchInputRef.current) searchInputRef.current.focus(); }, [showSearch]);
 
   const today = new Date();
   const dateLabel = today.toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
@@ -985,15 +990,60 @@ export default function BCMentalHealthResources() {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         input::placeholder { color: #A0AEC0; }
+        .header-search::placeholder { color: rgba(255,255,255,0.45) !important; }
         ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
       `}</style>
 
       {/* HEADER */}
       <div style={{ background: "linear-gradient(135deg, #2E4057 0%, #3A5A70 45%, #4A7C6F 100%)", padding: "30px 20px 26px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }} />
+        {/* Search button — top right */}
+        <button
+          onClick={() => { setShowSearch(!showSearch); if (showSearch) { setSearchTerm(""); } }}
+          aria-label="Search resources"
+          style={{
+            position: "absolute", top: 18, right: 16, zIndex: 10,
+            background: showSearch ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.12)",
+            border: "none", borderRadius: 10, width: 40, height: 40,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", transition: "all 0.2s",
+          }}
+        >
+          <span style={{ fontSize: 18, lineHeight: 1 }}>{showSearch ? "✕" : "🔍"}</span>
+        </button>
         <div style={{ fontSize: 28, marginBottom: 6 }}>🌿</div>
         <h1 style={{ fontFamily: fonts.heading, fontSize: "clamp(21px, 5vw, 28px)", fontWeight: 400, color: "#FFF", margin: "0 0 5px 0", lineHeight: 1.2 }}>BC Mental Health Resources</h1>
         <p style={{ fontFamily: fonts.body, fontSize: 13.5, color: "rgba(255,255,255,0.7)", margin: 0, fontWeight: 300 }}>You're not alone. Find support in your community.</p>
+
+        {/* Slide-down search bar */}
+        {showSearch && (
+          <div style={{ marginTop: 16, animation: "fadeIn 0.2s ease" }}>
+            <div style={{ maxWidth: 460, margin: "0 auto", display: "flex", alignItems: "center", background: "rgba(255,255,255,0.15)", borderRadius: 12, padding: "3px 4px", border: "1px solid rgba(255,255,255,0.2)" }}>
+              <span style={{ padding: "0 10px", fontSize: 15, color: "rgba(255,255,255,0.6)" }}>🔍</span>
+              <input
+                ref={searchInputRef}
+                type="text"
+                className="header-search"
+                placeholder="Search all resources..."
+                value={searchTerm}
+                onChange={e => {
+                  setSearchTerm(e.target.value);
+                  if (e.target.value) { setSelectedCategory(null); setPage("category"); }
+                  else { setPage("home"); setSelectedCategory(null); }
+                }}
+                onKeyDown={e => { if (e.key === "Escape") { setShowSearch(false); setSearchTerm(""); } }}
+                style={{
+                  flex: 1, border: "none", outline: "none", padding: "10px 6px", fontSize: 14,
+                  fontFamily: fonts.body, background: "transparent", color: "#FFF",
+                }}
+              />
+              {searchTerm && (
+                <button onClick={() => { setSearchTerm(""); setPage("home"); setSelectedCategory(null); }}
+                  style={{ background: "none", border: "none", cursor: "pointer", padding: "0 10px", fontSize: 13, color: "rgba(255,255,255,0.6)" }}>✕</button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* CRISIS BANNER */}
@@ -1043,7 +1093,7 @@ export default function BCMentalHealthResources() {
         {/* NAV TABS */}
         <div style={{ display: "flex", gap: 0, marginBottom: 20, background: "#FFF", borderRadius: 13, padding: 3.5, border: "1px solid #E2E8F0" }}>
           {[{ id: "home", label: "Home", icon: "🏠" }, { id: "events", label: "Events & Workshops", icon: "📅" }].map(tab => (
-            <button key={tab.id} onClick={() => { setPage(tab.id); setSelectedCategory(null); setSearchTerm(""); setEventSearch(""); setEventFilter("all"); }}
+            <button key={tab.id} onClick={() => { setPage(tab.id); setSelectedCategory(null); setSearchTerm(""); setEventSearch(""); setEventFilter("all"); setShowSearch(false); }}
               style={{
                 flex: 1, padding: "10px 6px", border: "none", borderRadius: 10, cursor: "pointer",
                 fontFamily: fonts.body, fontSize: 13.5, fontWeight: (page === tab.id || (page === "category" && tab.id === "home")) ? 600 : 400,
@@ -1076,17 +1126,6 @@ export default function BCMentalHealthResources() {
               ))}
             </div>
 
-            {/* Search */}
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ background: "#FFF", borderRadius: 13, padding: 3.5, border: "1px solid #E2E8F0", display: "flex", alignItems: "center" }}>
-                <span style={{ padding: "0 10px", fontSize: 16, color: "#CBD5E1" }}>🔍</span>
-                <input type="text" placeholder="Search all resources..." value={searchTerm}
-                  onChange={e => { setSearchTerm(e.target.value); if (e.target.value) { setSelectedCategory(null); setPage("category"); } }}
-                  style={{ flex: 1, border: "none", outline: "none", padding: "10px 6px", fontSize: 13.5, fontFamily: fonts.body, background: "transparent", color: "#334155" }} />
-                {searchTerm && <button onClick={() => { setSearchTerm(""); setPage("home"); setSelectedCategory(null); }} style={{ background: "none", border: "none", cursor: "pointer", padding: "0 10px", fontSize: 13, color: "#CBD5E1" }}>✕</button>}
-              </div>
-            </div>
-
             {/* Quick crisis */}
             <div style={{ background: "#FFF", borderRadius: 16, padding: "16px 18px", border: "1px solid #E2E8F0" }}>
               <h3 style={{ fontFamily: fonts.heading, fontSize: 15, color: "#1E293B", margin: "0 0 10px 0" }}>Quick-access crisis numbers</h3>
@@ -1116,7 +1155,7 @@ export default function BCMentalHealthResources() {
         {page === "category" && (
           <div style={{ animation: "fadeIn 0.3s ease" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <button onClick={() => { setPage("home"); setSelectedCategory(null); setSearchTerm(""); }}
+              <button onClick={() => { setPage("home"); setSelectedCategory(null); setSearchTerm(""); setShowSearch(false); }}
                 style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "7px 11px", cursor: "pointer", fontFamily: fonts.body, fontSize: 12.5, color: "#64748B" }}>← Back</button>
               {currentCat && <><span style={{ fontSize: 20 }}>{currentCat.icon}</span><h2 style={{ fontFamily: fonts.heading, fontSize: 19, fontWeight: 400, color: "#1E293B", margin: 0 }}>{currentCat.name}</h2></>}
               {!currentCat && searchTerm && <h2 style={{ fontFamily: fonts.heading, fontSize: 19, fontWeight: 400, color: "#1E293B", margin: 0 }}>Search results</h2>}
