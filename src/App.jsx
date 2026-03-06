@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -114,7 +114,448 @@ const RESOURCES = [
   { id: 66, category: "workplace", name: "BC 211", description: "Free, confidential, multilingual service connecting people to community, government, and social services across BC.", phone: "2-1-1", website: "https://bc211.ca", regions: ["all"], hours: "24/7", free: true },
 ];
 
-// Events are fetched live via Claude API with web search — no hardcoded events
+
+// ═══════════════════════════════════════════════════════════════════
+//  SMART EVENT ROTATION SYSTEM
+// ═══════════════════════════════════════════════════════════════════
+//
+//  HOW IT WORKS:
+//    Each event has a `schedule` object. The engine checks today's date
+//    and automatically shows the right events. You never touch recurring
+//    stuff — only add/remove "one-time" events when something new comes up.
+//
+//  SCHEDULE TYPES:
+//    "always"       → shows year-round (crisis reminders, ongoing programs)
+//    "monthly"      → shows every month, all month
+//    "weekday"      → shows on specific days each week (0=Sun … 6=Sat)
+//    "annual"       → shows during a specific month (optional day range)
+//    "annual-week"  → shows during a specific week-of-month
+//    "seasonal"     → shows during a range of months (handles year-wrap)
+//    "one-time"     → shows between start/end dates (the ONLY type you manage)
+// ═══════════════════════════════════════════════════════════════════
+
+const EVENT_POOL = [
+
+  // ── AWARENESS MONTHS & CAMPAIGNS ──────────────────────────────
+
+  {
+    id: "bell-lets-talk",
+    title: "Bell Let's Talk Day",
+    description: "Join the national conversation about mental health. Share resources, reduce stigma, and support mental health initiatives in your community.",
+    type: "info", location: "Province-wide", organizer: "Bell Canada", free: true,
+    link: "https://letstalk.bell.ca",
+    schedule: { type: "annual", month: 1, startDay: 20, endDay: 31 },
+    priority: 2,
+  },
+  {
+    id: "eating-disorder-week",
+    title: "Eating Disorder Awareness Week",
+    description: "Learn the signs, support recovery, and find resources for eating disorders. BC has specialized programs through each Health Authority and Jessie's Legacy.",
+    type: "info", location: "Province-wide", organizer: "National Eating Disorder Information Centre", free: true,
+    link: "https://jessieslegacy.com",
+    schedule: { type: "annual-week", month: 2, weekNumber: 1 },
+    priority: 2,
+  },
+  {
+    id: "family-day-bc",
+    title: "Family Day — Family Mental Health Resources",
+    description: "BC Family Day (third Monday of February). Explore family counselling options, parenting support, and child & youth mental health services.",
+    type: "info", location: "Province-wide", organizer: "BC Government", free: true,
+    schedule: { type: "annual", month: 2, startDay: 12, endDay: 22 },
+    priority: 3,
+  },
+  {
+    id: "international-womens-day",
+    title: "International Women's Day — Mental Health Focus",
+    description: "Highlighting women's mental health resources in BC, including perinatal mood disorders, trauma recovery, and gender-specific support programs.",
+    type: "info", location: "Province-wide", organizer: "Various BC organizations", free: true,
+    schedule: { type: "annual", month: 3, startDay: 1, endDay: 12 },
+    priority: 3,
+  },
+  {
+    id: "cmha-mental-health-week",
+    title: "CMHA Mental Health Week",
+    description: "Canadian Mental Health Association's annual awareness campaign. Find local events, workshops, and free screenings at your nearest CMHA branch.",
+    type: "info", location: "Province-wide", organizer: "CMHA BC Division", free: true,
+    link: "https://mentalhealthweek.ca",
+    schedule: { type: "annual-week", month: 5, weekNumber: 1 },
+    priority: 2,
+  },
+  {
+    id: "pride-month",
+    title: "Pride Month — 2SLGBTQ+ Mental Health",
+    description: "Celebrating Pride with a focus on 2SLGBTQ+ mental health. QMUNITY and local pride centres offer year-round counselling and support groups across BC.",
+    type: "info", location: "Province-wide", organizer: "QMUNITY / Local Pride Centres", free: true,
+    schedule: { type: "annual", month: 6 },
+    priority: 2,
+  },
+  {
+    id: "ptsd-awareness",
+    title: "PTSD Awareness Month",
+    description: "Learn about PTSD resources in BC including trauma-informed therapy, EMDR practitioners, and veteran-specific support through BC operational stress injury clinics.",
+    type: "info", location: "Province-wide", organizer: "Various", free: true,
+    schedule: { type: "annual", month: 6 },
+    priority: 3,
+  },
+  {
+    id: "indigenous-history-month",
+    title: "National Indigenous History Month",
+    description: "Honouring Indigenous history and wellness. Access culturally safe mental health resources through FNHA, Métis Nation BC, and local Friendship Centres.",
+    type: "info", location: "Province-wide", organizer: "FNHA / Métis Nation BC", free: true,
+    schedule: { type: "annual", month: 6 },
+    priority: 2,
+  },
+  {
+    id: "canada-day-wellness",
+    title: "Canada Day Long Weekend — Wellness Check-In",
+    description: "Long weekends can be tough. If you or someone you know is struggling, reach out. Crisis lines are open 24/7, including holidays.",
+    type: "info", location: "Province-wide", organizer: "BC Crisis Centre", free: true,
+    schedule: { type: "annual", month: 7, startDay: 1, endDay: 3 },
+    priority: 3,
+  },
+  {
+    id: "world-suicide-prevention",
+    title: "World Suicide Prevention Day",
+    description: "September 10 — Take time to learn the signs and reach out. Free safeTALK and ASIST training is available across BC through your local Health Authority.",
+    type: "info", location: "Province-wide", organizer: "International Association for Suicide Prevention", free: true,
+    schedule: { type: "annual", month: 9, startDay: 5, endDay: 15 },
+    priority: 2,
+  },
+  {
+    id: "recovery-month",
+    title: "National Recovery Month",
+    description: "Celebrating recovery from substance use and mental health conditions. Explore BC's recovery community centres and peer support programs.",
+    type: "info", location: "Province-wide", organizer: "Various BC organizations", free: true,
+    schedule: { type: "annual", month: 9 },
+    priority: 2,
+  },
+  {
+    id: "world-mental-health-day",
+    title: "World Mental Health Day — October 10",
+    description: "A global day of awareness. Look for free events, workshops, and community walks organized by CMHA branches and Health Authorities across BC.",
+    type: "info", location: "Province-wide", organizer: "CMHA / World Health Organization", free: true,
+    link: "https://bc.cmha.ca",
+    schedule: { type: "annual", month: 10, startDay: 5, endDay: 15 },
+    priority: 2,
+  },
+  {
+    id: "healthy-workplace-month",
+    title: "Healthy Workplace Month",
+    description: "Employers: access free psychological health & safety resources. The Mental Health Commission of Canada and CCOHS offer toolkits and training.",
+    type: "info", location: "Province-wide", organizer: "CCOHS / Mental Health Commission of Canada", free: true,
+    schedule: { type: "annual", month: 10 },
+    priority: 3,
+  },
+  {
+    id: "movember",
+    title: "Movember — Men's Mental Health",
+    description: "November is Movember. Men are less likely to seek help — HeadsUpGuys (UBC) offers a free self-check tool and connects BC men with local resources.",
+    type: "info", location: "Province-wide", organizer: "Movember Foundation / HeadsUpGuys (UBC)", free: true,
+    link: "https://headsupguys.org",
+    schedule: { type: "annual", month: 11 },
+    priority: 2,
+  },
+  {
+    id: "addictions-awareness-week",
+    title: "National Addictions Awareness Week",
+    description: "Held in late November — find harm reduction resources, free naloxone training, and recovery programs through BC's regional Health Authorities.",
+    type: "info", location: "Province-wide", organizer: "Canadian Centre on Substance Use and Addiction", free: true,
+    schedule: { type: "annual", month: 11, startDay: 18, endDay: 30 },
+    priority: 2,
+  },
+  {
+    id: "holiday-season",
+    title: "Holiday Season — You're Not Alone",
+    description: "The holidays can be isolating. Warm lines, support groups, and drop-in centres are open throughout December. Reach out if you need connection.",
+    type: "info", location: "Province-wide", organizer: "BC Crisis Centre / CMHA", free: true,
+    schedule: { type: "annual", month: 12 },
+    priority: 2,
+  },
+
+  // ── RECURRING SUPPORT GROUPS & PROGRAMS ───────────────────────
+
+  {
+    id: "cmha-peer-support",
+    title: "CMHA Peer Support Groups — Monthly",
+    description: "Free drop-in peer support groups run by CMHA branches across BC. Topics rotate monthly: anxiety management, grief, life transitions, and more.",
+    type: "support-group", location: "Multiple BC locations & online", organizer: "CMHA BC", free: true,
+    link: "https://bc.cmha.ca",
+    schedule: { type: "monthly" },
+    priority: 3,
+  },
+  {
+    id: "anxiety-canada-webinar",
+    title: "Anxiety Canada — Free Monthly Webinar",
+    description: "MindShift CBT techniques, Q&A with psychologists, and practical tools for managing anxiety. Register on the Anxiety Canada website.",
+    type: "workshop", location: "Online", organizer: "Anxiety Canada", free: true,
+    link: "https://www.anxietycanada.com",
+    schedule: { type: "monthly" },
+    priority: 3,
+  },
+  {
+    id: "mood-disorders-weekly",
+    title: "Mood Disorders Association of BC — Weekly Groups",
+    description: "Free weekly online and in-person support groups for depression and bipolar disorder. Facilitated by trained peers. No referral needed.",
+    type: "support-group", location: "Vancouver & online", organizer: "MDABC", free: true,
+    link: "https://www.mdabc.net",
+    schedule: { type: "weekday", days: [2, 4] },
+    recurring: "Tuesdays & Thursdays",
+    priority: 3,
+  },
+  {
+    id: "smart-recovery",
+    title: "SMART Recovery BC — Weekly Meetings",
+    description: "Science-based addiction recovery support. Free weekly meetings online and in-person across BC. Self-empowerment approach — no labels required.",
+    type: "support-group", location: "Multiple BC locations & online", organizer: "SMART Recovery", free: true,
+    schedule: { type: "weekday", days: [1, 3, 5] },
+    recurring: "Mon, Wed, Fri",
+    priority: 3,
+  },
+  {
+    id: "foundry-drop-in",
+    title: "Foundry BC — Youth Drop-In (Ages 12–24)",
+    description: "Walk-in mental health, substance use, and primary care for young people. 13 centres across BC — no appointment or referral needed.",
+    type: "drop-in", location: "13 centres across BC", organizer: "Foundry BC", free: true,
+    link: "https://foundrybc.ca",
+    schedule: { type: "weekday", days: [1, 2, 3, 4, 5] },
+    recurring: "Weekdays",
+    priority: 2,
+  },
+  {
+    id: "here2talk",
+    title: "Here2Talk — Post-Secondary Students 24/7",
+    description: "Free 24/7 counselling and community referrals for all BC post-secondary students. Call 1-877-857-3397 or use the Here2Talk app.",
+    type: "program", location: "Online / phone", organizer: "BC Government", free: true,
+    link: "https://here2talk.ca",
+    schedule: { type: "always" },
+    priority: 2,
+  },
+  {
+    id: "bounceback-ongoing",
+    title: "BounceBack BC — Free CBT Program (Ongoing Intake)",
+    description: "Guided self-help program for low mood, stress, and anxiety. Phone coaching with workbooks. Self-refer or ask your doctor.",
+    type: "program", location: "Province-wide (phone-based)", organizer: "CMHA BC", free: true,
+    link: "https://bouncebackbc.ca",
+    schedule: { type: "always" },
+    priority: 2,
+  },
+  {
+    id: "wellness-together",
+    title: "Wellness Together Canada — Instant Free Support",
+    description: "Federal program offering free mental health and substance use support. Self-assessment tools, PocketWell app, and counsellor chat available right now.",
+    type: "program", location: "Online", organizer: "Government of Canada", free: true,
+    link: "https://www.wellnesstogether.ca",
+    schedule: { type: "always" },
+    priority: 3,
+  },
+
+  // ── TRAINING & WORKSHOPS ──────────────────────────────────────
+
+  {
+    id: "safetalk-training",
+    title: "safeTALK Suicide Alertness Training — Free",
+    description: "Half-day training to recognize and respond to suicidal thoughts. Offered regularly by Health Authorities and CMHA branches. No clinical background needed.",
+    type: "training", location: "Multiple BC locations", organizer: "LivingWorks / Health Authorities", free: true,
+    schedule: { type: "monthly" },
+    priority: 3,
+  },
+  {
+    id: "asist-training",
+    title: "ASIST — Applied Suicide Intervention Skills",
+    description: "Two-day intensive workshop for anyone who wants to provide suicide first aid. Certificates provided. Check your Health Authority for upcoming dates.",
+    type: "training", location: "Multiple BC locations", organizer: "LivingWorks / Health Authorities", free: true,
+    schedule: { type: "monthly" },
+    priority: 3,
+  },
+  {
+    id: "mhfa-training",
+    title: "Mental Health First Aid Training",
+    description: "Learn to identify and respond to mental health problems. Offered through the Mental Health Commission of Canada. Many BC employers cover the cost.",
+    type: "training", location: "Multiple BC locations & online", organizer: "Mental Health Commission of Canada", free: false,
+    schedule: { type: "monthly" },
+    priority: 3,
+  },
+  {
+    id: "naloxone-training",
+    title: "Free Naloxone Training & Kits",
+    description: "Learn to recognize an overdose and use naloxone. Free kits available at pharmacies and community centres across BC. Training takes about 30 minutes.",
+    type: "training", location: "BC pharmacies & community centres", organizer: "BC Centre for Disease Control", free: true,
+    schedule: { type: "always" },
+    priority: 3,
+  },
+  {
+    id: "crisis-volunteer",
+    title: "Volunteer with a Crisis Line",
+    description: "Make a difference — become a trained crisis line responder. BC Crisis Centre, Kids Help Phone, and Trans Lifeline are always looking for volunteers.",
+    type: "training", location: "Vancouver & online", organizer: "BC Crisis Centre / Kids Help Phone", free: true,
+    schedule: { type: "always" },
+    priority: 4,
+  },
+  {
+    id: "peer-support-cert",
+    title: "Peer Support Worker Training Programs",
+    description: "Use your lived experience to help others. BC offers certified Peer Support Worker programs through community colleges and health organizations.",
+    type: "training", location: "Multiple BC locations", organizer: "Various BC colleges", free: false,
+    schedule: { type: "seasonal", startMonth: 1, endMonth: 4 },
+    priority: 4,
+  },
+
+  // ── SEASONAL ──────────────────────────────────────────────────
+
+  {
+    id: "outdoor-therapy",
+    title: "Outdoor & Nature-Based Therapy Programs",
+    description: "Spring & summer programs combining ecotherapy, forest bathing, and group counselling. Offered by community organizations across BC's Lower Mainland and Island.",
+    type: "program", location: "Lower Mainland & Vancouver Island", organizer: "Various", free: false,
+    schedule: { type: "seasonal", startMonth: 4, endMonth: 9 },
+    priority: 4,
+  },
+  {
+    id: "sad-resources",
+    title: "Seasonal Affective Disorder (SAD) Resources",
+    description: "Short days getting you down? Learn about light therapy, vitamin D, and evidence-based strategies. Talk to your GP or call 811 for guidance.",
+    type: "info", location: "Province-wide", organizer: "HealthLink BC", free: true,
+    schedule: { type: "seasonal", startMonth: 10, endMonth: 3 },
+    priority: 3,
+  },
+  {
+    id: "back-to-school",
+    title: "Back to School — Youth Mental Health Check-In",
+    description: "Transitioning back can be stressful. Foundry centres, school counsellors, and Kelty Mental Health are here to help. Parents: learn the signs.",
+    type: "info", location: "Province-wide", organizer: "Foundry BC / Kelty Mental Health", free: true,
+    link: "https://keltymentalhealth.ca",
+    schedule: { type: "seasonal", startMonth: 8, endMonth: 9 },
+    priority: 3,
+  },
+  {
+    id: "summer-camps",
+    title: "Summer Camps with Mental Health Focus",
+    description: "Therapeutic and recreational summer camps for youth. Many offer sliding-scale fees. Check with your local Boys & Girls Club, YMCA, and Health Authority.",
+    type: "program", location: "Various across BC", organizer: "YMCA / Boys & Girls Clubs", free: false,
+    schedule: { type: "seasonal", startMonth: 5, endMonth: 7 },
+    priority: 3,
+  },
+  {
+    id: "holiday-grief",
+    title: "Holiday Grief & Loss Support",
+    description: "Missing someone during the holidays? BC Bereavement Helpline (1-877-779-2223) and local hospice societies offer grief support groups through the season.",
+    type: "support-group", location: "Province-wide", organizer: "BC Bereavement Helpline", free: true,
+    link: "https://bcbh.ca",
+    schedule: { type: "seasonal", startMonth: 11, endMonth: 1 },
+    priority: 2,
+  },
+  {
+    id: "spring-wellness",
+    title: "Spring Wellness Kickoff",
+    description: "New season, fresh start. Explore community recreation programs, free fitness classes, and wellness workshops through your local municipality and rec centres.",
+    type: "program", location: "Various across BC", organizer: "Municipal recreation centres", free: true,
+    schedule: { type: "seasonal", startMonth: 3, endMonth: 5 },
+    priority: 4,
+  },
+
+  // ── INDIGENOUS-SPECIFIC ───────────────────────────────────────
+
+  {
+    id: "fnha-counselling",
+    title: "FNHA Mental Health Benefits — Ongoing",
+    description: "First Nations Health Authority covers counselling for eligible First Nations people in BC. No doctor referral required. Call 1-855-550-5454.",
+    type: "program", location: "Province-wide", organizer: "FNHA", free: true,
+    link: "https://www.fnha.ca",
+    schedule: { type: "always" },
+    priority: 2,
+  },
+  {
+    id: "orange-shirt-day",
+    title: "Orange Shirt Day / Truth & Reconciliation Day",
+    description: "September 30 — Honouring residential school survivors and remembering the children who never came home. Healing resources available through IRSSS and FNHA.",
+    type: "info", location: "Province-wide", organizer: "IRSSS / FNHA", free: true,
+    schedule: { type: "annual", month: 9, startDay: 25, endDay: 30 },
+    priority: 2,
+  },
+
+  // ── 2SLGBTQ+ ─────────────────────────────────────────────────
+
+  {
+    id: "trans-lifeline",
+    title: "Trans Lifeline — Peer Support",
+    description: "Peer support hotline run by and for trans people. Call 1-877-330-6366. No non-consensual active rescue. Available in English and Spanish.",
+    type: "support-group", location: "Phone (Canada-wide)", organizer: "Trans Lifeline", free: true,
+    schedule: { type: "always" },
+    priority: 2,
+  },
+  {
+    id: "tdov",
+    title: "Transgender Day of Visibility",
+    description: "March 31 — Celebrating trans lives and raising awareness of mental health challenges facing trans communities. QMUNITY offers year-round counselling.",
+    type: "info", location: "Province-wide", organizer: "QMUNITY", free: true,
+    schedule: { type: "annual", month: 3, startDay: 27, endDay: 31 },
+    priority: 3,
+  },
+  {
+    id: "tdor",
+    title: "Transgender Day of Remembrance",
+    description: "November 20 — Remembering those lost to anti-trans violence. If you're struggling, Trans Lifeline (1-877-330-6366) and QMUNITY are here for you.",
+    type: "info", location: "Province-wide", organizer: "QMUNITY / Trans Lifeline", free: true,
+    schedule: { type: "annual", month: 11, startDay: 17, endDay: 23 },
+    priority: 3,
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  //  ONE-TIME EVENTS — the ONLY section you need to manually update
+  // ═══════════════════════════════════════════════════════════════
+  //  Add new one-time events below. Remove them after they pass.
+  //  Example:
+  //  {
+  //    id: "vgh-open-house-2026",
+  //    title: "VGH Mental Health Open House",
+  //    description: "Tour the new outpatient mental health wing. Free, open to all.",
+  //    type: "workshop", location: "Vancouver", organizer: "VGH",
+  //    free: true, link: "https://example.com",
+  //    schedule: { type: "one-time", start: "2026-04-15", end: "2026-04-15" },
+  //    priority: 2,
+  //  },
+];
+
+
+// ── DATE ENGINE ─────────────────────────────────────────────────
+
+function isEventActive(event, today) {
+  const s = event.schedule;
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
+  const dow = today.getDay();
+  const dateStr = today.toISOString().slice(0, 10);
+  const weekOfMonth = Math.ceil(day / 7);
+
+  switch (s.type) {
+    case "always":
+    case "monthly":
+      return true;
+    case "weekday":
+      return s.days.includes(dow);
+    case "annual":
+      if (month !== s.month) return false;
+      if (s.startDay && day < s.startDay) return false;
+      if (s.endDay && day > s.endDay) return false;
+      return true;
+    case "annual-week":
+      return month === s.month && weekOfMonth === s.weekNumber;
+    case "seasonal":
+      if (s.startMonth <= s.endMonth) return month >= s.startMonth && month <= s.endMonth;
+      return month >= s.startMonth || month <= s.endMonth;
+    case "one-time":
+      return dateStr >= s.start && dateStr <= s.end;
+    default:
+      return false;
+  }
+}
+
+function getActiveEvents(today) {
+  return EVENT_POOL
+    .filter((e) => isEventActive(e, today))
+    .sort((a, b) => (a.priority || 5) - (b.priority || 5));
+}
+
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
 
@@ -158,12 +599,10 @@ function ResourceCard({ resource, categoryColor, categoryIcon }) {
   );
 }
 
-function EventCard({ event }) {
+function SmartEventCard({ event }) {
   const [expanded, setExpanded] = useState(false);
-  const d = new Date(event.date + "T00:00:00");
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const typeColors = { workshop: "#2E86AB", training: "#7E57C2", "drop-in": "#3A9E6E", program: "#E67E22", conference: "#D94F4F", info: "#3498DB" };
+  const typeColors = { workshop: "#2E86AB", training: "#7E57C2", "drop-in": "#3A9E6E", program: "#E67E22", conference: "#D94F4F", info: "#3498DB", "support-group": "#C48B5C" };
+  const typeLabels = { workshop: "Workshop", training: "Training", "drop-in": "Drop-in", program: "Program", conference: "Conference", info: "Awareness", "support-group": "Support Group" };
   const tc = typeColors[event.type] || "#546E7A";
 
   return (
@@ -174,9 +613,10 @@ function EventCard({ event }) {
     }}>
       <div style={{ display: "flex" }}>
         <div style={{ background: `linear-gradient(135deg, ${tc}, ${tc}DD)`, minWidth: 68, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "14px 6px", color: "#FFF", flexShrink: 0 }}>
-          <span style={{ fontSize: 10.5, fontWeight: 600, fontFamily: fonts.body, textTransform: "uppercase", opacity: 0.85 }}>{months[d.getMonth()]}</span>
-          <span style={{ fontSize: 24, fontWeight: 700, fontFamily: fonts.body, lineHeight: 1.1 }}>{d.getDate()}</span>
-          <span style={{ fontSize: 10, fontFamily: fonts.body, opacity: 0.7 }}>{days[d.getDay()]}</span>
+          <span style={{ fontSize: 22, lineHeight: 1 }}>
+            {event.type === "support-group" ? "🤝" : event.type === "training" ? "📋" : event.type === "drop-in" ? "🚪" : event.type === "program" ? "🏥" : event.type === "info" ? "🎗️" : event.type === "workshop" ? "🛠️" : "📅"}
+          </span>
+          <span style={{ fontSize: 9, fontFamily: fonts.body, fontWeight: 600, marginTop: 4, textTransform: "uppercase", opacity: 0.9, textAlign: "center", lineHeight: 1.2 }}>{typeLabels[event.type] || "Event"}</span>
         </div>
         <div style={{ flex: 1, padding: "13px 15px", minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
@@ -193,9 +633,8 @@ function EventCard({ event }) {
           {expanded && (
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #F1F5F9", animation: "fadeIn 0.2s ease" }}>
               <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#475569", lineHeight: 1.6, margin: "0 0 8px 0" }}>{event.description}</p>
-              <p style={{ fontFamily: fonts.body, fontSize: 11.5, color: "#94A3B8", margin: "0 0 3px 0" }}>Organized by: {event.organizer}</p>
-              {event.endDate && <p style={{ fontFamily: fonts.body, fontSize: 11.5, color: "#94A3B8", margin: "0 0 10px 0" }}>Runs: {event.date} to {event.endDate}</p>}
-              {event.link && <a href={event.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: tc, color: "#FFF", padding: "8px 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: fonts.body, textDecoration: "none" }}>Learn more & register →</a>}
+              <p style={{ fontFamily: fonts.body, fontSize: 11.5, color: "#94A3B8", margin: "0 0 10px 0" }}>Organized by: {event.organizer}</p>
+              {event.link && <a href={event.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: tc, color: "#FFF", padding: "8px 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 600, fontFamily: fonts.body, textDecoration: "none" }}>Learn more →</a>}
             </div>
           )}
         </div>
@@ -204,117 +643,6 @@ function EventCard({ event }) {
   );
 }
 
-// ─── MAIN APP ────────────────────────────────────────────────────────────────
-
-// ─── AI EVENT FETCHER ─────────────────────────────────────────────────────────
-
-const EVENTS_CACHE_KEY = "__bc_mh_events_cache";
-const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
-
-function getSessionCache() {
-  try {
-    const raw = window.__bcMhEventsCache;
-    if (raw && raw.ts && (Date.now() - raw.ts < CACHE_TTL_MS)) return raw.events;
-  } catch {}
-  return null;
-}
-
-function setSessionCache(events) {
-  try { window.__bcMhEventsCache = { ts: Date.now(), events }; } catch {}
-}
-
-async function fetchEventsFromAI() {
-  const cached = getSessionCache();
-  if (cached) return cached;
-
-  const today = new Date();
-  const twoMonthsLater = new Date(today);
-  twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
-  const todayStr = today.toISOString().slice(0, 10);
-  const endStr = twoMonthsLater.toISOString().slice(0, 10);
-
-  const prompt = `You are a helpful assistant that finds upcoming mental health events in British Columbia, Canada.
-
-Today's date is ${todayStr}. Search the web for mental health events, workshops, support groups, training sessions, and conferences happening in British Columbia between ${todayStr} and ${endStr}.
-
-Search for events from these key sources:
-- CMHA BC and its branches (cmha.bc.ca, victoria.cmha.bc.ca, kamloops.cmha.bc.ca, etc.)
-- Foundry BC (foundrybc.ca) — youth workshops and groups
-- BC Association of Clinical Counsellors (bcacc.ca)
-- Canadian Mental Health conferences in BC
-- BC Schizophrenia Society events
-- Anxiety Canada events
-- Any other BC mental health workshops, webinars, or support groups
-
-Return ONLY a JSON array (no markdown, no backticks, no preamble) of event objects with these fields:
-- "title": string (event name)
-- "date": string (YYYY-MM-DD of start date)
-- "endDate": string or null (YYYY-MM-DD if multi-day)
-- "recurring": string or null (e.g. "Every Wednesday", "Weekly")
-- "location": string (city or "Online")
-- "organizer": string
-- "description": string (1-2 sentences)
-- "link": string or null (URL to event page)
-- "free": boolean
-- "type": one of "workshop", "training", "drop-in", "program", "conference", "info", "support-group"
-
-Find as many real, upcoming events as you can (aim for 10-20). Only include events with real dates that haven't passed yet. Sort by date ascending.`;
-
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 4000,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-
-    const data = await response.json();
-
-    // Extract text content from all response blocks
-    const textParts = (data.content || [])
-      .filter(b => b.type === "text")
-      .map(b => b.text)
-      .join("\n");
-
-    // Try to parse JSON from the response
-    let events = [];
-    const jsonMatch = textParts.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      const cleaned = jsonMatch[0].replace(/```json|```/g, "").trim();
-      events = JSON.parse(cleaned);
-    }
-
-    // Validate and clean events
-    events = events
-      .filter(e => e.title && e.date && e.location)
-      .map((e, i) => ({
-        id: i + 1,
-        title: e.title || "Untitled Event",
-        date: e.date,
-        endDate: e.endDate || null,
-        recurring: e.recurring || null,
-        location: e.location || "BC",
-        organizer: e.organizer || "Unknown",
-        description: e.description || "",
-        link: e.link || null,
-        free: typeof e.free === "boolean" ? e.free : true,
-        type: ["workshop","training","drop-in","program","conference","info","support-group"].includes(e.type) ? e.type : "workshop",
-      }))
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    if (events.length > 0) {
-      setSessionCache(events);
-    }
-    return events;
-  } catch (err) {
-    console.error("Failed to fetch events:", err);
-    return [];
-  }
-}
 
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
 
@@ -325,29 +653,43 @@ export default function BCMentalHealthResources() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showRegionPicker, setShowRegionPicker] = useState(false);
   const [regionSearch, setRegionSearch] = useState("");
-  const [aiEvents, setAiEvents] = useState([]);
-  const [eventsLoading, setEventsLoading] = useState(false);
-  const [eventsError, setEventsError] = useState(false);
-  const [eventsFetched, setEventsFetched] = useState(false);
+  const [eventSearch, setEventSearch] = useState("");
+  const [eventFilter, setEventFilter] = useState("all");
   const topRef = useRef(null);
 
   useEffect(() => { if (topRef.current) topRef.current.scrollIntoView({ behavior: "smooth" }); }, [page, selectedCategory]);
 
-  // Fetch events when user switches to events tab
-  useEffect(() => {
-    if (page === "events" && !eventsFetched) {
-      setEventsLoading(true);
-      setEventsError(false);
-      fetchEventsFromAI()
-        .then(events => {
-          setAiEvents(events);
-          setEventsFetched(true);
-          if (events.length === 0) setEventsError(true);
-        })
-        .catch(() => { setEventsError(true); })
-        .finally(() => { setEventsLoading(false); });
+  const today = new Date();
+  const dateLabel = today.toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+  // Smart event rotation
+  const activeEvents = useMemo(() => getActiveEvents(today), [today.toDateString()]);
+
+  const filteredEvents = useMemo(() => {
+    let list = activeEvents;
+    if (eventFilter !== "all") {
+      list = list.filter(e => e.type === eventFilter);
     }
-  }, [page, eventsFetched]);
+    if (eventSearch.trim()) {
+      const q = eventSearch.toLowerCase();
+      list = list.filter(e =>
+        e.title.toLowerCase().includes(q) ||
+        e.description.toLowerCase().includes(q) ||
+        e.organizer.toLowerCase().includes(q) ||
+        e.location.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [activeEvents, eventFilter, eventSearch]);
+
+  // Derive event type filters from active events
+  const activeEventTypes = useMemo(() => {
+    const types = new Set(activeEvents.map(e => e.type));
+    return Array.from(types);
+  }, [activeEvents]);
+
+  const featuredEvents = filteredEvents.filter(e => (e.priority || 5) <= 2);
+  const otherEvents = filteredEvents.filter(e => (e.priority || 5) > 2);
 
   const filteredResources = RESOURCES.filter(r => {
     const rm = selectedRegion === "all" || r.regions.includes("all") || r.regions.includes(selectedRegion);
@@ -356,10 +698,12 @@ export default function BCMentalHealthResources() {
     return rm && cm && sm;
   });
 
-  const filteredEvents = aiEvents;
   const filteredRegions = REGIONS.filter(r => r.name.toLowerCase().includes(regionSearch.toLowerCase()));
   const currentRegion = REGIONS.find(r => r.id === selectedRegion);
   const currentCat = CATEGORIES.find(c => c.id === selectedCategory);
+
+  const typeColors = { workshop: "#2E86AB", training: "#7E57C2", "drop-in": "#3A9E6E", program: "#E67E22", conference: "#D94F4F", info: "#3498DB", "support-group": "#C48B5C" };
+  const typeLabels = { workshop: "Workshop", training: "Training", "drop-in": "Drop-in", program: "Program", conference: "Conference", info: "Awareness", "support-group": "Support Group" };
 
   return (
     <div ref={topRef} style={{ minHeight: "100vh", background: "linear-gradient(170deg, #FAFAF7 0%, #F3F1EC 40%, #EEF4F2 70%, #F6F3EE 100%)", fontFamily: fonts.body }}>
@@ -426,7 +770,7 @@ export default function BCMentalHealthResources() {
         {/* NAV TABS */}
         <div style={{ display: "flex", gap: 0, marginBottom: 20, background: "#FFF", borderRadius: 13, padding: 3.5, border: "1px solid #E2E8F0" }}>
           {[{ id: "home", label: "Home", icon: "🏠" }, { id: "events", label: "Events & Workshops", icon: "📅" }].map(tab => (
-            <button key={tab.id} onClick={() => { setPage(tab.id); setSelectedCategory(null); setSearchTerm(""); }}
+            <button key={tab.id} onClick={() => { setPage(tab.id); setSelectedCategory(null); setSearchTerm(""); setEventSearch(""); setEventFilter("all"); }}
               style={{
                 flex: 1, padding: "10px 6px", border: "none", borderRadius: 10, cursor: "pointer",
                 fontFamily: fonts.body, fontSize: 13.5, fontWeight: (page === tab.id || (page === "category" && tab.id === "home")) ? 600 : 400,
@@ -541,95 +885,75 @@ export default function BCMentalHealthResources() {
           </div>
         )}
 
-        {/* ══════ EVENTS (AI-powered) ══════ */}
+        {/* ══════ EVENTS (Smart Rotation) ══════ */}
         {page === "events" && (
           <div style={{ animation: "fadeIn 0.3s ease" }}>
             <div style={{ textAlign: "center", marginBottom: 18 }}>
-              <h2 style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 400, color: "#1E293B", margin: "0 0 5px 0" }}>📅 Upcoming Events & Workshops</h2>
-              <p style={{ fontFamily: fonts.body, fontSize: 12.5, color: "#64748B", margin: 0 }}>Workshops, training, support groups & more across BC</p>
-              <p style={{ fontFamily: fonts.body, fontSize: 10.5, color: "#94A3B8", marginTop: 4 }}>✨ Events are searched fresh from the web each visit</p>
+              <h2 style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 400, color: "#1E293B", margin: "0 0 5px 0" }}>📅 Events & Workshops</h2>
+              <p style={{ fontFamily: fonts.body, fontSize: 12.5, color: "#64748B", margin: 0 }}>Workshops, training, support groups & awareness campaigns across BC</p>
+              <p style={{ fontFamily: fonts.body, fontSize: 10.5, color: "#94A3B8", marginTop: 4 }}>
+                Showing <strong style={{ color: "#334155" }}>{activeEvents.length}</strong> events for {dateLabel}
+              </p>
             </div>
 
-            {/* Event type legend */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, justifyContent: "center" }}>
-              {[{ type: "workshop", label: "Workshop", c: "#2E86AB" }, { type: "training", label: "Training", c: "#7E57C2" }, { type: "drop-in", label: "Drop-in", c: "#3A9E6E" }, { type: "program", label: "Program", c: "#E67E22" }, { type: "conference", label: "Conference", c: "#D94F4F" }, { type: "info", label: "Info Session", c: "#3498DB" }, { type: "support-group", label: "Support Group", c: "#C48B5C" }].map(t => (
-                <span key={t.type} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: fonts.body, fontSize: 10.5, color: "#64748B" }}>
-                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: t.c, display: "inline-block" }} />{t.label}
-                </span>
-              ))}
-            </div>
-
-            {/* Loading state */}
-            {eventsLoading && (
-              <div style={{ textAlign: "center", padding: "48px 20px" }}>
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{
-                    width: 48, height: 48, border: "4px solid #E2E8F0", borderTopColor: "#4A7C6F",
-                    borderRadius: "50%", margin: "0 auto",
-                    animation: "spin 1s linear infinite",
-                  }} />
-                  <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-                </div>
-                <p style={{ fontFamily: fonts.heading, fontSize: 17, color: "#1E293B", margin: "0 0 6px 0" }}>Finding upcoming events...</p>
-                <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#94A3B8", margin: 0 }}>Searching CMHA, Foundry, BCACC, and other BC mental health organizations</p>
-                <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 8 }}>
-                  {[1,2,3].map(i => (
-                    <div key={i} style={{
-                      background: "#FFF", borderRadius: 16, height: 80, overflow: "hidden",
-                      display: "flex", opacity: 0.6,
-                    }}>
-                      <div style={{ width: 68, background: `linear-gradient(135deg, #E2E8F0, #CBD5E1)`, animation: `pulse ${1 + i * 0.2}s ease-in-out infinite` }} />
-                      <div style={{ flex: 1, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
-                        <div style={{ height: 14, background: "#F1F5F9", borderRadius: 6, width: `${70 + i * 10}%` }} />
-                        <div style={{ height: 10, background: "#F1F5F9", borderRadius: 6, width: "50%" }} />
-                      </div>
-                    </div>
-                  ))}
-                  <style>{`@keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.8; } }`}</style>
-                </div>
+            {/* Search */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ background: "#FFF", borderRadius: 11, padding: 3, border: "1px solid #E2E8F0", display: "flex", alignItems: "center" }}>
+                <span style={{ padding: "0 9px", fontSize: 14, color: "#CBD5E1" }}>🔍</span>
+                <input type="text" placeholder="Search events..." value={eventSearch} onChange={e => setEventSearch(e.target.value)}
+                  style={{ flex: 1, border: "none", outline: "none", padding: "9px 5px", fontSize: 13, fontFamily: fonts.body, background: "transparent", color: "#334155" }} />
+                {eventSearch && <button onClick={() => setEventSearch("")} style={{ background: "none", border: "none", cursor: "pointer", padding: "0 9px", fontSize: 12, color: "#CBD5E1" }}>✕</button>}
               </div>
-            )}
+            </div>
 
-            {/* Error / empty state */}
-            {!eventsLoading && eventsError && (
+            {/* Event type filters */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16, justifyContent: "center" }}>
+              <button onClick={() => setEventFilter("all")} style={{
+                padding: "4px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: fonts.body, cursor: "pointer", transition: "all 0.15s",
+                background: eventFilter === "all" ? "#2E4057" : "#FFF", color: eventFilter === "all" ? "#FFF" : "#64748B",
+                border: eventFilter === "all" ? "1.5px solid #2E4057" : "1.5px solid #E2E8F0",
+              }}>All ({activeEvents.length})</button>
+              {activeEventTypes.map(t => {
+                const count = activeEvents.filter(e => e.type === t).length;
+                return (
+                  <button key={t} onClick={() => setEventFilter(t)} style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    padding: "4px 11px", borderRadius: 20, fontSize: 11, fontWeight: 500, fontFamily: fonts.body, cursor: "pointer", transition: "all 0.15s",
+                    background: eventFilter === t ? (typeColors[t] || "#546E7A") : "#FFF",
+                    color: eventFilter === t ? "#FFF" : "#64748B",
+                    border: eventFilter === t ? `1.5px solid ${typeColors[t] || "#546E7A"}` : "1.5px solid #E2E8F0",
+                  }}>
+                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: eventFilter === t ? "#FFF" : (typeColors[t] || "#546E7A"), display: "inline-block", opacity: eventFilter === t ? 0.8 : 1 }} />
+                    {typeLabels[t] || t} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {filteredEvents.length === 0 ? (
               <div style={{ textAlign: "center", padding: "40px 20px", background: "#FFF", borderRadius: 16 }}>
                 <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
-                <p style={{ fontFamily: fonts.heading, fontSize: 16, color: "#1E293B", margin: "0 0 6px 0" }}>Couldn't load events right now</p>
-                <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#94A3B8", margin: "0 0 16px 0" }}>This can happen if the search takes too long. You can try again or check these sites directly.</p>
-                <button onClick={() => { setEventsFetched(false); }} style={{
-                  background: "#2E4057", color: "#FFF", border: "none", borderRadius: 10, padding: "10px 20px",
-                  fontFamily: fonts.body, fontSize: 13, fontWeight: 600, cursor: "pointer", marginBottom: 16,
-                }}>Try again</button>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {[
-                    { label: "CMHA BC Events", href: "https://bc.cmha.ca/events/" },
-                    { label: "Foundry Workshops", href: "https://foundrybc.ca/virtual/groups-workshops/" },
-                    { label: "HelpStartsHere", href: "https://www.helpstartshere.gov.bc.ca" },
-                  ].map((l, i) => (
-                    <a key={i} href={l.href} target="_blank" rel="noopener noreferrer" style={{ fontFamily: fonts.body, fontSize: 13, color: "#2563EB", fontWeight: 600, textDecoration: "none" }}>{l.label} →</a>
-                  ))}
-                </div>
+                <p style={{ fontFamily: fonts.heading, fontSize: 16, color: "#1E293B", margin: "0 0 6px 0" }}>No matching events</p>
+                <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#94A3B8", margin: 0 }}>Try a different search term or filter.</p>
               </div>
-            )}
-
-            {/* Events list */}
-            {!eventsLoading && !eventsError && filteredEvents.length > 0 && (
+            ) : (
               <>
-                <p style={{ fontFamily: fonts.body, fontSize: 12, color: "#94A3B8", marginBottom: 10 }}>
-                  Found <strong style={{ color: "#334155" }}>{filteredEvents.length}</strong> upcoming event{filteredEvents.length !== 1 ? "s" : ""}
-                </p>
-                {filteredEvents.map(e => <EventCard key={e.id} event={e} />)}
-
-                <div style={{ textAlign: "center", marginTop: 12 }}>
-                  <button onClick={() => { setEventsFetched(false); }} style={{
-                    background: "none", border: "1px solid #E2E8F0", borderRadius: 10, padding: "8px 16px",
-                    fontFamily: fonts.body, fontSize: 12, color: "#64748B", cursor: "pointer",
-                  }}>🔄 Refresh events</button>
-                </div>
+                {featuredEvents.length > 0 && (
+                  <>
+                    <p style={{ fontFamily: fonts.body, fontSize: 11, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.06em", color: "#94A3B8", marginBottom: 8 }}>⭐ Featured right now</p>
+                    {featuredEvents.map(e => <SmartEventCard key={e.id} event={e} />)}
+                  </>
+                )}
+                {otherEvents.length > 0 && (
+                  <>
+                    <p style={{ fontFamily: fonts.body, fontSize: 11, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.06em", color: "#94A3B8", marginBottom: 8, marginTop: featuredEvents.length > 0 ? 18 : 0 }}>📋 Ongoing & recurring</p>
+                    {otherEvents.map(e => <SmartEventCard key={e.id} event={e} />)}
+                  </>
+                )}
               </>
             )}
 
-            {/* Always show direct links */}
+            {/* Direct links */}
             <div style={{ marginTop: 18, padding: "14px 16px", background: "#FFF", borderRadius: 13, border: "1px solid #E2E8F0", textAlign: "center" }}>
               <p style={{ fontFamily: fonts.body, fontSize: 11.5, color: "#94A3B8", margin: "0 0 7px 0" }}>Browse events directly:</p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
