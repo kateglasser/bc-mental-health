@@ -112,6 +112,62 @@ const RESOURCES = [
   { id: 64, category: "workplace", name: "Care to Speak", description: "Free, confidential peer support for healthcare workers. Available by text, phone, or online chat.", website: "https://www.careforcaregivers.ca", regions: ["all"], free: true },
   { id: 65, category: "workplace", name: "People Working Well", description: "BC workplace mental health webinars, free training, and learning coaches.", website: "https://www.workingwell.gov.bc.ca", regions: ["all"], free: true },
   { id: 66, category: "workplace", name: "BC 211", description: "Free, confidential, multilingual service connecting people to community, government, and social services across BC.", phone: "2-1-1", website: "https://bc211.ca", regions: ["all"], hours: "24/7", free: true },
+
+  // ── ADHD ──────────────────────────────────────────────────────
+  { id: 100, category: "nonprofit", name: "CADDRA — Canadian ADHD Resource Alliance", description: "Find ADHD-trained physicians, psychologists, and assessment centres in BC. Maintains a searchable directory of qualified clinicians across Canada.", website: "https://www.caddra.ca", regions: ["all"], free: true },
+  { id: 101, category: "nonprofit", name: "Centre for ADHD Awareness Canada (CADDAC)", description: "Education, advocacy, and support for Canadians affected by ADHD. Offers webinars, fact sheets, workplace accommodation guides, and a resource directory.", website: "https://caddac.ca", regions: ["all"], free: true },
+  { id: 102, category: "support", name: "CHADD — Children and Adults with ADHD", description: "International non-profit providing ADHD education, support groups, and resources for individuals and families. Many resources available virtually to BC residents.", website: "https://chadd.org", regions: ["all"], free: true },
+  { id: 103, category: "medical", name: "BC ADHD Assessment & Treatment — Health Authority Referrals", description: "Publicly funded ADHD assessment is available through your family doctor or walk-in clinic. GPs can diagnose and prescribe medication, or refer to a psychiatrist for complex cases.", regions: ["all"], free: true },
+  { id: 104, category: "virtual", name: "ADHD Self-Screening Tools (CADDAC)", description: "Free validated self-screening questionnaires (ASRS) available through CADDAC and CADDRA. These do not diagnose but help you decide whether to seek assessment.", website: "https://caddac.ca/adhd-screener", regions: ["all"], free: true },
+  { id: 105, category: "youth", name: "ADHD Support for Children & Youth — Kelty Mental Health", description: "Kelty Mental Health offers free ADHD information for parents and families. Child & Youth Mental Health teams across BC can assess and treat ADHD in young people.", phone: "1-800-665-1822", website: "https://keltymentalhealth.ca", regions: ["all"], free: true },
+  { id: 106, category: "workplace", name: "ADHD Workplace Accommodations Guide (CADDAC)", description: "Free guides on workplace rights, accommodations, and disclosure strategies for adults with ADHD in Canada. Employers can access toolkits too.", website: "https://caddac.ca/workplace", regions: ["all"], free: true },
+
+  // ── DEPRESSION ────────────────────────────────────────────────
+  { id: 110, category: "nonprofit", name: "HeadsUpGuys — Depression in Men (UBC)", description: "UBC-developed resource specifically for men experiencing depression. Offers a free self-check tool, practical tips, and stories from men who've been through it.", website: "https://headsupguys.org", regions: ["all"], free: true },
+  { id: 111, category: "virtual", name: "Antidepressant Skills Workbook (Here to Help)", description: "Free downloadable CBT-based workbook for managing depression. Developed by BC Mental Health & Substance Use Services. Available in multiple languages.", website: "https://www.heretohelp.bc.ca/workbook/antidepressant-skills-workbook", regions: ["all"], free: true },
+  { id: 112, category: "support", name: "Depression Peer Support — MDABC Weekly Groups", description: "Free weekly peer-facilitated support groups specifically for people living with depression. Both in-person (Vancouver) and online groups available. No referral needed.", phone: "604-873-0103", website: "https://www.mdabc.net", regions: ["all"], free: true },
+  { id: 113, category: "medical", name: "BC Reproductive Mental Health Program", description: "Specialized care for perinatal depression and anxiety (during pregnancy and postpartum). Consultation, assessment, and treatment through BC Women's Hospital.", phone: "604-875-2025", website: "http://www.bcwomens.ca/health-info/mental-health-substance-use/reproductive-mental-health", regions: ["all"], free: true },
+  { id: 114, category: "virtual", name: "Living Life to the Full — Free Online CBT Course", description: "Free self-directed online course teaching practical CBT skills for low mood, stress, worry, and poor sleep. Developed by CMHA and available to all British Columbians.", website: "https://www.livinglifetothefull.ca", regions: ["all"], free: true },
+  { id: 115, category: "youth", name: "MindCheck — Youth Depression & Anxiety Screening", description: "Free, anonymous online screening tool for youth to assess depression, anxiety, and substance use. Provides personalized recommendations and local resources.", website: "https://mindcheck.ca", regions: ["all"], free: true },
+
+  // ── PTSD & TRAUMA ─────────────────────────────────────────────
+  { id: 120, category: "medical", name: "BC Operational Stress Injury (OSI) Clinic", description: "Specialized outpatient treatment for PTSD and operational stress injuries in military veterans, RCMP, and first responders. Located at Vancouver General Hospital.", phone: "604-875-4255", regions: ["metro-vancouver", "all"], free: true },
+  { id: 121, category: "nonprofit", name: "Wounded Warriors Canada — BC Programs", description: "Mental health programs for veterans, first responders, and their families, including trauma-focused therapy, service dogs, equine therapy, and peer support.", website: "https://woundedwarriors.ca", regions: ["all"], free: true },
+  { id: 122, category: "support", name: "BC First Responder Mental Health — Peer Support", description: "Peer support and critical incident stress debriefing for firefighters, paramedics, police, and dispatchers. Programs run through individual departments and CISM teams across BC.", regions: ["all"], free: true },
+  { id: 123, category: "medical", name: "EMDR Therapy in BC — Find a Practitioner", description: "Eye Movement Desensitization and Reprocessing is an evidence-based PTSD treatment. The EMDR Canada and EMDRIA directories list trained BC therapists.", website: "https://emdrcanada.org", regions: ["all"], free: false },
+  { id: 124, category: "virtual", name: "PTSD Coach Canada App", description: "Free app developed by Veterans Affairs Canada. Self-assessment tools, coping strategies, and psychoeducation for managing PTSD symptoms. Available to anyone, not just veterans.", website: "https://www.veterans.gc.ca/eng/resources/stay-connected/mobile-app/ptsd-coach-canada", regions: ["all"], free: true },
+  { id: 125, category: "support", name: "BC Society for Male Survivors of Sexual Abuse", description: "Free individual and group counselling for men and boys who have experienced sexual abuse or assault. Confidential, trauma-informed support.", phone: "604-682-6482", website: "https://bc-male-survivors.com", regions: ["metro-vancouver", "all"], free: true },
+  { id: 126, category: "nonprofit", name: "Veterans Affairs Canada — Mental Health Services", description: "Federal mental health services for Canadian Armed Forces veterans, including PTSD assessment, treatment, and ongoing support. Available across BC.", phone: "1-866-522-2122", website: "https://www.veterans.gc.ca", regions: ["all"], free: true },
+  { id: 127, category: "crisis", name: "Veterans Affairs Canada Crisis Line", description: "24/7 mental health crisis support specifically for veterans and their families. Confidential, bilingual service staffed by trained professionals.", phone: "1-800-268-7708", regions: ["all"], hours: "24/7", free: true },
+  { id: 128, category: "support", name: "BC Women's Hospital CUDDLE Program", description: "Trauma-informed group therapy program for women who have experienced childhood trauma and its ongoing impacts. Referral through your physician.", phone: "604-875-2025", regions: ["metro-vancouver"], free: true },
+  { id: 129, category: "virtual", name: "Trauma-Informed BC — Self-Help Resources", description: "Free trauma education resources, self-care strategies, and guides on finding trauma-focused therapists in BC. Includes information on PTSD, C-PTSD, and dissociation.", website: "https://www.heretohelp.bc.ca/factsheet/post-traumatic-stress-disorder", regions: ["all"], free: true },
+
+  // ── BIPOLAR DISORDER ──────────────────────────────────────────
+  { id: 130, category: "medical", name: "UBC Mood Disorders Centre", description: "Specialized research and treatment centre for mood disorders including bipolar disorder. Offers clinical trials, comprehensive assessment, and treatment recommendations.", phone: "604-822-7512", website: "https://ubc-mdc.ca", regions: ["metro-vancouver", "all"], free: true },
+  { id: 131, category: "virtual", name: "Bipolar Disorder Info — Here to Help BC", description: "Free information on bipolar disorder including self-management strategies, medication guides, mood tracking, wellness plans, and personal stories from British Columbians.", website: "https://www.heretohelp.bc.ca/factsheet/bipolar-disorder", regions: ["all"], free: true },
+  { id: 132, category: "support", name: "MDABC Bipolar-Specific Support Groups", description: "Mood Disorders Association of BC runs free peer support groups specifically for people with bipolar disorder. Both in-person and online options available weekly.", phone: "604-873-0103", website: "https://www.mdabc.net", regions: ["all"], free: true },
+  { id: 133, category: "virtual", name: "Bipolar Disorder Self-Management Workbook", description: "Free downloadable workbook from Here to Help BC covering mood tracking, trigger identification, medication management, and building a wellness recovery action plan.", website: "https://www.heretohelp.bc.ca", regions: ["all"], free: true },
+  { id: 134, category: "support", name: "Family Support for Bipolar Disorder — MDABC", description: "Free education sessions and support groups for family members and caregivers of people living with bipolar disorder. Learn how to support your loved one and yourself.", phone: "604-873-0103", website: "https://www.mdabc.net", regions: ["all"], free: true },
+
+  // ── SCHIZOPHRENIA & PSYCHOSIS ─────────────────────────────────
+  { id: 140, category: "support", name: "BCSS Strengthening Families Together Program", description: "Free 10-session educational program for families of people with serious mental illness including schizophrenia. Covers symptoms, treatment, communication, crisis planning, and self-care.", phone: "1-888-888-0029", website: "https://www.bcss.org", regions: ["all"], free: true },
+  { id: 141, category: "medical", name: "Assertive Community Treatment (ACT) Teams — BC", description: "Intensive community-based mental health teams for people with severe and persistent mental illness. Provide wraparound support including housing, medication management, and life skills.", regions: ["all"], free: true },
+  { id: 142, category: "virtual", name: "Psychosis Sucks — Youth Early Psychosis Resource", description: "Youth-friendly website with information about psychosis, personal stories, and family resources. Developed by BC Early Psychosis Intervention programs.", website: "https://psychosissucks.ca", regions: ["all"], free: true },
+  { id: 143, category: "support", name: "Hearing Voices Network — BC Groups", description: "Peer-led support groups for people who hear voices, see visions, or have other unusual perceptual experiences. Non-pathologizing, community-based approach.", regions: ["all"], free: true },
+  { id: 144, category: "medical", name: "Clozapine Clinics — BC Health Authorities", description: "Specialized monitoring clinics for patients on clozapine medication for treatment-resistant schizophrenia. Available through each regional Health Authority in BC.", regions: ["all"], free: true },
+  { id: 145, category: "nonprofit", name: "Schizophrenia Society of Canada — Resources", description: "National resources including the Learning About Schizophrenia rays of hope guide, family education, and connections to provincial services.", website: "https://www.schizophrenia.ca", regions: ["all"], free: true },
+  { id: 146, category: "virtual", name: "Early Psychosis Intervention — Family Toolkit", description: "Free comprehensive guide for families navigating a first episode of psychosis. Covers what to expect, treatment options, communication tips, and BC-specific resources.", website: "https://earlypsychosis.ca", regions: ["all"], free: true },
+
+  // ── EATING DISORDERS ──────────────────────────────────────────
+  { id: 150, category: "medical", name: "BC Provincial Eating Disorders Program — St. Paul's Hospital", description: "Specialized provincial program offering inpatient, day treatment, and outpatient care for adults with severe eating disorders. Physician referral required.", phone: "604-806-8255", regions: ["metro-vancouver", "all"], free: true },
+  { id: 151, category: "nonprofit", name: "Looking Glass Foundation", description: "BC-based non-profit providing eating disorder support including peer support, family programs, recovery groups, and financial assistance for private treatment.", phone: "604-314-0548", website: "https://www.lookingglassbc.com", regions: ["all"], free: true },
+  { id: 152, category: "medical", name: "BC Children's Hospital Eating Disorders Program", description: "Specialized assessment and treatment for children and adolescents with eating disorders. Includes inpatient, day program, and outpatient family-based treatment (FBT).", phone: "604-875-2010", regions: ["metro-vancouver", "all"], free: true },
+  { id: 153, category: "support", name: "National Eating Disorder Information Centre (NEDIC)", description: "Canada-wide helpline for eating disorder support, referrals, and information. Provides direct support and connects callers with local treatment resources.", phone: "1-866-633-4220", website: "https://nedic.ca", regions: ["all"], free: true },
+  { id: 154, category: "virtual", name: "Kelty Eating Disorders — Family Resources", description: "Free information and resources for families navigating eating disorder treatment for children and youth in BC. Includes guides on family-based treatment (FBT).", website: "https://keltyeatingdisorders.ca", regions: ["all"], free: true },
+  { id: 155, category: "support", name: "Looking Glass Peer Support Groups", description: "Free weekly virtual support groups for people recovering from eating disorders. Facilitated by trained peer mentors with lived experience. No referral needed.", website: "https://www.lookingglassbc.com", regions: ["all"], free: true },
+  { id: 156, category: "medical", name: "Interior Health Eating Disorders Program — Kelowna", description: "Regional eating disorders program for the BC Interior serving adolescents and adults. Includes outpatient assessment, group therapy, and nutritional counselling.", phone: "250-862-4200", regions: ["central-okanagan", "north-okanagan", "okanagan-similkameen", "thompson-nicola", "cariboo", "columbia-shuswap", "kootenay-boundary", "central-kootenay", "east-kootenay"], free: true },
+  { id: 157, category: "medical", name: "Island Health Eating Disorders Services", description: "Eating disorder services for Vancouver Island including outpatient programs in Victoria and Nanaimo. Youth and adult streams available with physician referral.", phone: "250-370-8300", regions: ["capital", "nanaimo", "cowichan-valley", "comox-valley", "alberni-clayoquot", "strathcona", "mount-waddington"], free: true },
+  { id: 158, category: "virtual", name: "Body Brave — Free Online Eating Disorder Support", description: "Free virtual support groups, psychoeducation, and recovery resources for Canadians affected by eating disorders and disordered eating.", website: "https://bodybrave.ca", regions: ["all"], free: true },
 ];
 
 
@@ -150,9 +206,9 @@ const EVENT_POOL = [
   {
     id: "eating-disorder-week",
     title: "Eating Disorder Awareness Week",
-    description: "Learn the signs, support recovery, and find resources for eating disorders. BC has specialized programs through each Health Authority and Jessie's Legacy.",
-    type: "info", location: "Province-wide", organizer: "National Eating Disorder Information Centre", free: true,
-    link: "https://jessieslegacy.com",
+    description: "Learn the signs, support recovery, and find resources. Looking Glass Foundation, Jessie's Legacy, and NEDIC host free events across BC during the first week of February.",
+    type: "info", location: "Province-wide", organizer: "Looking Glass Foundation / NEDIC / Jessie's Legacy", free: true,
+    link: "https://www.lookingglassbc.com",
     schedule: { type: "annual-week", month: 2, weekNumber: 1 },
     priority: 2,
   },
@@ -191,11 +247,11 @@ const EVENT_POOL = [
   },
   {
     id: "ptsd-awareness",
-    title: "PTSD Awareness Month",
-    description: "Learn about PTSD resources in BC including trauma-informed therapy, EMDR practitioners, and veteran-specific support through BC operational stress injury clinics.",
-    type: "info", location: "Province-wide", organizer: "Various", free: true,
+    title: "PTSD Awareness Month — June",
+    description: "June is PTSD Awareness Month. Find BC resources including EMDR therapists, the PTSD Coach Canada app, OSI clinics for veterans, and trauma-informed therapy through your Health Authority.",
+    type: "info", location: "Province-wide", organizer: "Various BC organizations", free: true,
     schedule: { type: "annual", month: 6 },
-    priority: 3,
+    priority: 2,
   },
   {
     id: "indigenous-history-month",
@@ -500,8 +556,225 @@ const EVENT_POOL = [
     priority: 3,
   },
 
-  // ═══════════════════════════════════════════════════════════════
-  //  ONE-TIME EVENTS — the ONLY section you need to manually update
+  // ── CONDITION-SPECIFIC EVENTS ───────────────────────────────
+
+  // ADHD
+  {
+    id: "adhd-awareness-month",
+    title: "ADHD Awareness Month",
+    description: "October is ADHD Awareness Month. Learn about adult and childhood ADHD, find assessment options through your GP, and explore resources from CADDAC and CADDRA.",
+    type: "info", location: "Province-wide", organizer: "CADDAC / CADDRA", free: true,
+    link: "https://caddac.ca",
+    schedule: { type: "annual", month: 10 },
+    priority: 2,
+  },
+  {
+    id: "caddac-webinars",
+    title: "CADDAC ADHD Webinars — Monthly",
+    description: "Free monthly webinars covering ADHD management strategies, medication, workplace accommodations, parenting tips, and executive function skills.",
+    type: "workshop", location: "Online", organizer: "CADDAC", free: true,
+    link: "https://caddac.ca",
+    schedule: { type: "monthly" },
+    priority: 3,
+  },
+  {
+    id: "adhd-back-to-school",
+    title: "ADHD & Back to School — Parent Resources",
+    description: "Preparing for a new school year with ADHD? Kelty Mental Health and CADDAC offer free guides on school accommodations, IEPs, and supporting your child's success.",
+    type: "info", location: "Province-wide", organizer: "Kelty Mental Health / CADDAC", free: true,
+    link: "https://keltymentalhealth.ca",
+    schedule: { type: "seasonal", startMonth: 8, endMonth: 9 },
+    priority: 3,
+  },
+
+  // DEPRESSION
+  {
+    id: "depression-screening-day",
+    title: "National Depression Screening Day",
+    description: "Held during Mental Illness Awareness Week in October. Free, anonymous depression screenings available online through Here to Help BC and in person at some CMHA branches.",
+    type: "info", location: "Province-wide & online", organizer: "CMHA / Here to Help BC", free: true,
+    link: "https://www.heretohelp.bc.ca",
+    schedule: { type: "annual", month: 10, startDay: 1, endDay: 10 },
+    priority: 2,
+  },
+  {
+    id: "depression-peer-groups",
+    title: "MDABC Depression Support Groups — Weekly",
+    description: "Free peer-facilitated support groups specifically for people experiencing depression. In-person in Vancouver and online via Zoom. No diagnosis or referral needed.",
+    type: "support-group", location: "Vancouver & online", organizer: "Mood Disorders Association of BC", free: true,
+    link: "https://www.mdabc.net",
+    schedule: { type: "weekday", days: [2] },
+    recurring: "Tuesdays",
+    priority: 3,
+  },
+  {
+    id: "sad-light-therapy",
+    title: "Seasonal Depression (SAD) — Light Therapy & Resources",
+    description: "BC's dark winters affect many people. Learn about light therapy, vitamin D, exercise, and when to talk to your doctor. Call 811 for guidance on SAD treatment options.",
+    type: "info", location: "Province-wide", organizer: "HealthLink BC", free: true,
+    schedule: { type: "seasonal", startMonth: 10, endMonth: 3 },
+    priority: 3,
+  },
+  {
+    id: "perinatal-depression",
+    title: "Perinatal Depression & Anxiety — Ongoing Support",
+    description: "Struggling during or after pregnancy? BC Reproductive Mental Health Program at BC Women's Hospital offers specialized assessment and treatment. Call 604-875-2025.",
+    type: "program", location: "Province-wide (phone & in-person)", organizer: "BC Women's Hospital", free: true,
+    schedule: { type: "always" },
+    priority: 3,
+  },
+
+  // PTSD & TRAUMA
+  {
+    id: "ptsd-awareness-month-full",
+    title: "PTSD Awareness Month — Resources & Support",
+    description: "June is PTSD Awareness Month. Explore BC resources including trauma-informed therapy, EMDR practitioners, the PTSD Coach Canada app, and veteran-specific support through OSI clinics.",
+    type: "info", location: "Province-wide", organizer: "Various BC organizations", free: true,
+    schedule: { type: "annual", month: 6 },
+    priority: 2,
+  },
+  {
+    id: "first-responder-ptsd",
+    title: "First Responder Mental Health — Ongoing Support",
+    description: "BC firefighters, paramedics, police, and dispatchers can access peer support, critical incident stress debriefing, and specialized trauma therapy through their departments and CISM teams.",
+    type: "program", location: "Province-wide", organizer: "BC CISM Teams / Wounded Warriors", free: true,
+    link: "https://woundedwarriors.ca",
+    schedule: { type: "always" },
+    priority: 3,
+  },
+  {
+    id: "trauma-informed-training",
+    title: "Trauma-Informed Practice Training",
+    description: "Free and low-cost training on trauma-informed approaches for service providers, educators, and community members. Offered by Health Authorities and non-profits across BC.",
+    type: "training", location: "Multiple BC locations & online", organizer: "BC Health Authorities", free: true,
+    schedule: { type: "monthly" },
+    priority: 3,
+  },
+  {
+    id: "remembrance-day-veterans",
+    title: "Remembrance Day — Veteran Mental Health Resources",
+    description: "Honouring those who served. If you're a veteran struggling with PTSD or mental health, VAC crisis line (1-800-268-7708) and OSI clinics are here for you year-round.",
+    type: "info", location: "Province-wide", organizer: "Veterans Affairs Canada", free: true,
+    schedule: { type: "annual", month: 11, startDay: 8, endDay: 14 },
+    priority: 2,
+  },
+
+  // BIPOLAR DISORDER
+  {
+    id: "bipolar-peer-groups",
+    title: "MDABC Bipolar Support Groups — Weekly",
+    description: "Free peer-facilitated support groups specifically for people living with bipolar disorder. In-person in Vancouver and online via Zoom. No diagnosis required to attend.",
+    type: "support-group", location: "Vancouver & online", organizer: "Mood Disorders Association of BC", free: true,
+    link: "https://www.mdabc.net",
+    schedule: { type: "weekday", days: [4] },
+    recurring: "Thursdays",
+    priority: 3,
+  },
+  {
+    id: "world-bipolar-day",
+    title: "World Bipolar Day — March 30",
+    description: "Raising awareness of bipolar disorder and eliminating stigma. MDABC and CMHA offer information sessions and resources throughout the week.",
+    type: "info", location: "Province-wide", organizer: "MDABC / CMHA", free: true,
+    link: "https://www.mdabc.net",
+    schedule: { type: "annual", month: 3, startDay: 25, endDay: 31 },
+    priority: 2,
+  },
+  {
+    id: "bipolar-family-education",
+    title: "Bipolar Disorder Family Education — MDABC Monthly",
+    description: "Free monthly education sessions for family members and caregivers of people with bipolar disorder. Learn about the condition, medications, communication strategies, and self-care.",
+    type: "workshop", location: "Vancouver & online", organizer: "Mood Disorders Association of BC", free: true,
+    link: "https://www.mdabc.net",
+    schedule: { type: "monthly" },
+    priority: 3,
+  },
+
+  // SCHIZOPHRENIA & PSYCHOSIS
+  {
+    id: "world-schizophrenia-day",
+    title: "World Schizophrenia Awareness Day — May 24",
+    description: "Raising awareness and fighting stigma. BCSS hosts educational events and the Strengthening Families Together program runs free sessions for family members across BC.",
+    type: "info", location: "Province-wide", organizer: "BC Schizophrenia Society", free: true,
+    link: "https://www.bcss.org",
+    schedule: { type: "annual", month: 5, startDay: 20, endDay: 28 },
+    priority: 2,
+  },
+  {
+    id: "bcss-family-groups",
+    title: "BCSS Family Support Groups — Monthly",
+    description: "Free monthly support groups for families and caregivers of people with schizophrenia and psychotic disorders. Run by trained facilitators at BCSS branches across BC.",
+    type: "support-group", location: "Multiple BC locations & online", organizer: "BC Schizophrenia Society", free: true,
+    link: "https://www.bcss.org",
+    schedule: { type: "monthly" },
+    priority: 3,
+  },
+  {
+    id: "bcss-strengthening-families",
+    title: "BCSS Strengthening Families Together — 10-Session Program",
+    description: "Free 10-session program for families of people with serious mental illness. Covers understanding symptoms, navigating treatment, communication skills, and crisis planning.",
+    type: "training", location: "Multiple BC locations", organizer: "BC Schizophrenia Society", free: true,
+    link: "https://www.bcss.org",
+    schedule: { type: "seasonal", startMonth: 1, endMonth: 4 },
+    priority: 3,
+  },
+  {
+    id: "epi-awareness",
+    title: "Early Psychosis Awareness — Youth Outreach",
+    description: "BC's Early Psychosis Intervention programs offer free community talks for schools, families, and youth groups. Learn to recognize early signs and how to get help quickly.",
+    type: "info", location: "Province-wide", organizer: "BC EPI Programs", free: true,
+    link: "https://earlypsychosis.ca",
+    schedule: { type: "always" },
+    priority: 3,
+  },
+
+  // EATING DISORDERS
+  {
+    id: "eating-disorder-awareness-full",
+    title: "Eating Disorder Awareness Week — Resources & Events",
+    description: "First full week of February. Looking Glass Foundation, Jessie's Legacy, and NEDIC host free webinars, recovery panels, and community events across BC.",
+    type: "info", location: "Province-wide & online", organizer: "Looking Glass Foundation / Jessie's Legacy / NEDIC", free: true,
+    link: "https://www.lookingglassbc.com",
+    schedule: { type: "annual-week", month: 2, weekNumber: 1 },
+    priority: 2,
+  },
+  {
+    id: "looking-glass-groups",
+    title: "Looking Glass Foundation — Weekly Recovery Groups",
+    description: "Free weekly virtual support groups for people in eating disorder recovery. Facilitated by trained peer mentors with lived experience. Open to anyone in BC.",
+    type: "support-group", location: "Online", organizer: "Looking Glass Foundation", free: true,
+    link: "https://www.lookingglassbc.com",
+    schedule: { type: "weekday", days: [3] },
+    recurring: "Wednesdays",
+    priority: 3,
+  },
+  {
+    id: "nedic-support-line",
+    title: "NEDIC Eating Disorder Helpline — Ongoing",
+    description: "Free, confidential support and referrals for anyone affected by eating disorders. Call 1-866-633-4220 or use live chat on the NEDIC website.",
+    type: "program", location: "Phone & online", organizer: "National Eating Disorder Information Centre", free: true,
+    link: "https://nedic.ca",
+    schedule: { type: "always" },
+    priority: 2,
+  },
+  {
+    id: "world-eating-disorders-action-day",
+    title: "World Eating Disorders Action Day — June 2",
+    description: "A global day to expand knowledge and action on eating disorders. BC organizations host talks, share stories of recovery, and connect people with support.",
+    type: "info", location: "Province-wide", organizer: "Looking Glass Foundation / NEDIC", free: true,
+    schedule: { type: "annual", month: 6, startDay: 1, endDay: 5 },
+    priority: 2,
+  },
+  {
+    id: "body-image-school",
+    title: "Body Image & Eating Disorder Prevention — School Programs",
+    description: "Jessie's Legacy offers free presentations and workshops for BC schools on body image, media literacy, and eating disorder prevention for students and educators.",
+    type: "workshop", location: "BC schools & online", organizer: "Jessie's Legacy / Family Services of the North Shore", free: true,
+    link: "https://jessieslegacy.com",
+    schedule: { type: "seasonal", startMonth: 9, endMonth: 6 },
+    priority: 4,
+  },
+
+  // ══════════════════════════════════════════════════════════════
   // ═══════════════════════════════════════════════════════════════
   //  Add new one-time events below. Remove them after they pass.
   //  Example:
